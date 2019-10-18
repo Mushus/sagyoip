@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/Mushus/sagyoip/backend/assets"
 	"github.com/gin-contrib/static"
@@ -67,6 +68,7 @@ func (r roomHandler) Get(c *gin.Context) {
 		decoder := json.NewDecoder(ws)
 		req := WSReq{}
 
+		exit := make(chan struct{})
 		go func() {
 			for eventData := range event {
 				eventType := eventData.eventType()
@@ -78,6 +80,17 @@ func (r roomHandler) Get(c *gin.Context) {
 					log.Println(err)
 				}
 				ws.Write(b)
+			}
+		}()
+
+		go func() {
+			for {
+				select {
+				case <-exit:
+				default:
+					ws.Write([]byte("{}"))
+				}
+				time.Sleep(300 * time.Second)
 			}
 		}()
 
@@ -114,6 +127,7 @@ func (r roomHandler) Get(c *gin.Context) {
 				break
 			}
 		}
+		close(exit)
 	}).ServeHTTP(c.Writer, c.Request)
 }
 
