@@ -55,11 +55,12 @@ export default class User {
       description => this.sendAnswer(description),
       stream => this.updateStream(stream),
     );
+    receiver.onClose = status => {
+      if (status === 'failed' || status === 'closed') {
+        this.closeReceiver();
+      }
+    };
   }
-
-  // answer(description: RTCSessionDescription) {
-  //   this._sender && this._sender.console.log(description);
-  // }
 
   iceCandidate(iceCandidate: RTCIceCandidate) {
     this._sender && this._sender.addCandidate(iceCandidate);

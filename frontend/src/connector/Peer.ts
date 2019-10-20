@@ -7,6 +7,7 @@ type UpdateStreamFunc = (stream: MediaStream) => any;
 
 export default class Peer {
   private readonly _peer: RTCPeerConnection;
+  private _onClose: ((state: RTCPeerConnectionState) => any) | null | undefined;
 
   constructor(sendCandidate: SendIceCandidate) {
     const peer = new RTCPeerConnection(config);
@@ -31,6 +32,11 @@ export default class Peer {
     peer.ontrack = e => {
       const stream = e.streams.find(() => true);
       stream && updateStream(stream);
+    };
+
+    peer.onconnectionstatechange = () => {
+      const connectionState = this._peer.connectionState;
+      this._onClose && this._onClose(connectionState);
     };
 
     try {
@@ -62,5 +68,10 @@ export default class Peer {
 
   close() {
     this._peer.close();
+    this._peer.onconnectionstatechange = null;
+  }
+
+  set onClose(value: ((state: RTCPeerConnectionState) => any) | null) {
+    this._onClose = value;
   }
 }
