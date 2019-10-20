@@ -9,3 +9,7 @@ gen:
 
 dev:
 	fresh
+
+build:
+	mkdir -p dist
+	GOOS=linux GOARCH=amd64 go build backend/main.go -o dist/sagyoip-linux-amd64

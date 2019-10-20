@@ -44,13 +44,7 @@ export default ({ match }: Props) => {
 const ConnectView = (props: { roomId: string; userName: string }) => {
   const { roomId, userName } = props;
 
-  const [myStream, setStream] = useState<MediaStream | null>(null);
-
-  const [isLoadingDisplay, isShowDisplay, handleToggleDisplay] = useToggle(
-    () => getDisplayMediaStream().then(setStream),
-    () => setStream(null),
-    [],
-  );
+  const [myStream, isLoadingDisplay, handleToggleDisplay] = useToggleStream();
 
   const [users] = useRoom(roomId, userName, myStream);
   const streamingUser = users.filter(({ stream, isMe }) => (isMe ? myStream : stream));
@@ -80,11 +74,26 @@ const ConnectView = (props: { roomId: string; userName: string }) => {
       </UserListWindow>
       <ToolBox>
         <button disabled={isLoadingDisplay} onClick={handleToggleDisplay}>
-          {isShowDisplay ? '配信停止' : '配信開始'}
+          {myStream ? '配信停止' : '配信開始'}
         </button>
       </ToolBox>
     </AppWrapper>
   );
+};
+
+const useToggleStream = (): [MediaStream | null, boolean, () => Promise<void>] => {
+  const [myStream, setStream] = useState<MediaStream | null>(null);
+
+  const [isLoadingDisplay, , handleToggleDisplay] = useToggle(
+    () => getDisplayMediaStream().then(setStream),
+    () => {
+      myStream && myStream.getTracks().forEach(track => track.stop());
+      setStream(null);
+    },
+    [],
+  );
+
+  return [myStream, isLoadingDisplay, handleToggleDisplay];
 };
 
 const useRoom = (roomId: string, userName: string, stream: MediaStream | null) => {

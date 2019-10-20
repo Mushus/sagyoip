@@ -5,7 +5,7 @@
   "author": "Mushus <Mushus.wynd@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "dev": "parcel ./src/index.html -t browser --host 0.0.0.0",
+    "dev": "WS_URL=ws://localhost:8080/ws parcel ./src/index.html -t browser --host 0.0.0.0",
     "build": "rm -rf ./dist && parcel build ./src/index.html --no-source-maps"
   },
   "devDependencies": {

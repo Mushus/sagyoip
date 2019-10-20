@@ -68,7 +68,6 @@ func (r roomHandler) Get(c *gin.Context) {
 		decoder := json.NewDecoder(ws)
 		req := WSReq{}
 
-		exit := make(chan struct{})
 		go func() {
 			for eventData := range event {
 				eventType := eventData.eventType()
@@ -83,6 +82,7 @@ func (r roomHandler) Get(c *gin.Context) {
 			}
 		}()
 
+		exit := make(chan struct{})
 		go func() {
 			for {
 				select {
