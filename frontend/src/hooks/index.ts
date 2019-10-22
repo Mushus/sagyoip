@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 
-export const useToggle = (
+export const useAsyncFnToggle = (
   on: () => Promise<any> | any,
   off: () => Promise<any> | any,
   deps: readonly any[],
@@ -25,4 +25,18 @@ export const useToggle = (
     setLoading(false);
   }, [isOn, loading, ...deps]);
   return [loading, isOn, handler];
+};
+
+export const useDialog = (): [() => void, { open: boolean; onClose: () => void }] => {
+  const [open, setOpen] = useState(false);
+
+  const openFunc = useCallback(() => {
+    setOpen(true);
+  }, []);
+  const onClose = useCallback(() => {
+    setOpen(false);
+  }, []);
+
+  const dialogProps = { open, onClose };
+  return [openFunc, dialogProps];
 };

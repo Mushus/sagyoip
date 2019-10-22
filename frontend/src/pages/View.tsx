@@ -1,10 +1,15 @@
 import React, { useState, useEffect, useCallback, ChangeEvent, useRef } from 'react';
+import { makeStyles } from '@material-ui/core/styles';
 import styled from 'styled-components';
+import { Drawer, Box, List, ListItem, AppBar, Toolbar, Button } from '@material-ui/core';
+import { ScreenShare, StopScreenShare, Settings, Mic, MicOff } from '@material-ui/icons';
 import H from 'history';
 import { match } from 'react-router-dom';
 import Room from '~/connector/Room';
 import AutoSpliter from '~/components/AutoSpliter';
-import { useToggle } from '~/hooks';
+import BroadcastSettings from '~/components/dialogs/BroadcastSettings';
+import { useAsyncFnToggle, useDialog } from '~/hooks';
+import { useToggle } from 'react-use';
 
 interface UserData {
   id: number;
@@ -21,7 +26,7 @@ interface Props {
 export default ({ match }: Props) => {
   const roomId = match.params.id;
   const [mode, setMode] = useState(0);
-  const [userName, setUserName] = useState('');
+  const [userName, setUserName] = useState('test');
 
   const handleUpdateUserName = useCallback((e: ChangeEvent<HTMLInputElement>) => setUserName(e.target.value), []);
   const handleOk = useCallback(() => setMode(1), []);
@@ -41,6 +46,22 @@ export default ({ match }: Props) => {
   );
 };
 
+const drawerWidth = 240;
+
+const useStyles = makeStyles(theme => ({
+  controller: {
+    top: 'auto',
+    bottom: 0,
+    left: 0,
+    right: `${drawerWidth}px`,
+    width: 'auto',
+    backgroundColor: 'transparent',
+  },
+  button: {
+    margin: theme.spacing(1),
+  },
+}));
+
 const ConnectView = (props: { roomId: string; userName: string }) => {
   const { roomId, userName } = props;
 
@@ -49,42 +70,71 @@ const ConnectView = (props: { roomId: string; userName: string }) => {
   const [users] = useRoom(roomId, userName, myStream);
   const streamingUser = users.filter(({ stream, isMe }) => (isMe ? myStream : stream));
 
+  const [isOpenSettings, settingsProp] = useDialog();
+
+  const classes = useStyles();
+
+  const [isMicOn, toggleMute] = useToggle(false);
+
   return (
-    <AppWrapper>
-      <VideoField>
-        <AutoSpliter splitNum={streamingUser.length}>
-          {streamingUser.map(({ id, name, isMe, stream }) => (
-            <UserVideoField key={id}>
-              <VideoUserName>
-                {name} {isMe && '*'}
-              </VideoUserName>
-              <Preview src={isMe ? myStream : stream} />
-            </UserVideoField>
-          ))}
-        </AutoSpliter>
-      </VideoField>
-      <UserListWindow>
-        <UserList>
-          {users.map(({ id, name, isMe }) => (
-            <UserListColumn key={id}>
-              {name} {isMe && '*'}
-            </UserListColumn>
-          ))}
-        </UserList>
-      </UserListWindow>
-      <ToolBox>
-        <button disabled={isLoadingDisplay} onClick={handleToggleDisplay}>
-          {myStream ? '配信停止' : '配信開始'}
-        </button>
-      </ToolBox>
-    </AppWrapper>
+    <>
+      <AppWrapper>
+        <Drawer anchor="right" open={true} variant="permanent">
+          <Box width={drawerWidth}>
+            <List>
+              {users.map(({ id, name, isMe }) => (
+                <ListItem key={id}>
+                  {name} {isMe && '*'}
+                </ListItem>
+              ))}
+            </List>
+          </Box>
+        </Drawer>
+        <Box bgcolor="#000" mr={`${drawerWidth}px`} height="100%">
+          <VideoField>
+            <AutoSpliter splitNum={streamingUser.length}>
+              {streamingUser.map(({ id, name, isMe, stream }) => (
+                <UserVideoField key={id}>
+                  <VideoUserName>
+                    {name} {isMe && '*'}
+                  </VideoUserName>
+                  <Preview src={isMe ? myStream : stream} />
+                </UserVideoField>
+              ))}
+            </AutoSpliter>
+          </VideoField>
+          <AppBar position="fixed" className={classes.controller}>
+            <Toolbar>
+              <Box display="flex" justifyContent="center" width="100%">
+                <Button className={classes.button} variant="outlined" color="default" onClick={toggleMute}>
+                  {isMicOn ? <Mic /> : <MicOff />}
+                </Button>
+                <Button
+                  className={classes.button}
+                  variant="contained"
+                  color="primary"
+                  disabled={isLoadingDisplay}
+                  onClick={handleToggleDisplay}
+                >
+                  {myStream ? <ScreenShare /> : <StopScreenShare />}
+                </Button>
+                <Button variant="outlined" color="default" onClick={isOpenSettings} className={classes.button}>
+                  <Settings />
+                </Button>
+              </Box>
+            </Toolbar>
+          </AppBar>
+        </Box>
+      </AppWrapper>
+      <BroadcastSettings {...settingsProp} />
+    </>
   );
 };
 
 const useToggleStream = (): [MediaStream | null, boolean, () => Promise<void>] => {
   const [myStream, setStream] = useState<MediaStream | null>(null);
 
-  const [isLoadingDisplay, , handleToggleDisplay] = useToggle(
+  const [isLoadingDisplay, , handleToggleDisplay] = useAsyncFnToggle(
     () => getDisplayMediaStream().then(setStream),
     () => {
       myStream && myStream.getTracks().forEach(track => track.stop());
@@ -145,19 +195,15 @@ const color = {
 const AppWrapper = styled.div`
   width: 100vw;
   height: 100vh;
-  background-color: ${color.lightBlack};
-  display: grid;
-  grid-template-columns: 1fr 300px;
-  grid-template-rows: 1fr 30px;
 `;
 
 const VideoField = styled.div`
-  box-sizing: border-box;
-  padding: 10px;
+  /*  box-sizing: border-box;
+  padding: 10px;*/
 `;
 
 const UserVideoField = styled.div`
-  position: relative;
+  /*  position: relative;*/
 `;
 
 const VideoUserName = styled.div`
@@ -178,22 +224,4 @@ const VideoPreview = styled.video`
   object-fit: contain;
   width: 100%;
   height: 100%;
-`;
-
-const UserListWindow = styled.div`
-  grid-column: 2 / 2;
-  grid-row: 1 / 3;
-  background-color: ${color.darkGray};
-`;
-
-const UserList = styled.ul``;
-
-const UserListColumn = styled.li`
-  color: ${color.bodyText};
-  line-height: 2em;
-`;
-
-const ToolBox = styled.div`
-  display: flex;
-  justify-content: center;
 `;
