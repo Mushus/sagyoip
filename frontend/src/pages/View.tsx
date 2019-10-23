@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, ChangeEvent, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import styled from 'styled-components';
 import { Drawer, Box, List, ListItem, AppBar, Toolbar, Button } from '@material-ui/core';
@@ -10,6 +10,8 @@ import AutoSpliter from '~/components/AutoSpliter';
 import BroadcastSettings from '~/components/dialogs/BroadcastSettings';
 import { useAsyncFnToggle, useDialog } from '~/hooks';
 import { useToggle } from 'react-use';
+import ChooseName from '~/components/room/ChooseName';
+import { useLocalStorage } from '~/localStorage';
 
 interface UserData {
   id: number;
@@ -25,24 +27,14 @@ interface Props {
 
 export default ({ match }: Props) => {
   const roomId = match.params.id;
-  const [mode, setMode] = useState(0);
-  const [userName, setUserName] = useState('test');
-
-  const handleUpdateUserName = useCallback((e: ChangeEvent<HTMLInputElement>) => setUserName(e.target.value), []);
-  const handleOk = useCallback(() => setMode(1), []);
+  const [{ name }, { updateName }] = useLocalStorage();
 
   return (
-    <>
-      {mode === 0 && (
-        <>
-          <input type="text" value={userName} onChange={handleUpdateUserName} />
-          <button type="button" onClick={handleOk}>
-            ok
-          </button>
-        </>
-      )}
-      {mode === 1 && <ConnectView roomId={roomId} userName={userName} />}
-    </>
+    <AppWrapper>
+      <Box bgcolor="#000" width="100%" height="100%">
+        {!name ? <ChooseName onUpdateUserName={updateName} /> : <ConnectView roomId={roomId} userName={name} />}
+      </Box>
+    </AppWrapper>
   );
 };
 
@@ -71,61 +63,56 @@ const ConnectView = (props: { roomId: string; userName: string }) => {
   const streamingUser = users.filter(({ stream, isMe }) => (isMe ? myStream : stream));
 
   const [isOpenSettings, settingsProp] = useDialog();
+  const [isMicOn, toggleMute] = useToggle(false);
 
   const classes = useStyles();
 
-  const [isMicOn, toggleMute] = useToggle(false);
-
   return (
     <>
-      <AppWrapper>
-        <Drawer anchor="right" open={true} variant="permanent">
-          <Box width={drawerWidth}>
-            <List>
-              {users.map(({ id, name, isMe }) => (
-                <ListItem key={id}>
-                  {name} {isMe && '*'}
-                </ListItem>
-              ))}
-            </List>
-          </Box>
-        </Drawer>
-        <Box bgcolor="#000" mr={`${drawerWidth}px`} height="100%">
-          <VideoField>
-            <AutoSpliter splitNum={streamingUser.length}>
-              {streamingUser.map(({ id, name, isMe, stream }) => (
-                <UserVideoField key={id}>
-                  <VideoUserName>
-                    {name} {isMe && '*'}
-                  </VideoUserName>
-                  <Preview src={isMe ? myStream : stream} />
-                </UserVideoField>
-              ))}
-            </AutoSpliter>
-          </VideoField>
-          <AppBar position="fixed" className={classes.controller}>
-            <Toolbar>
-              <Box display="flex" justifyContent="center" width="100%">
-                <Button className={classes.button} variant="outlined" color="default" onClick={toggleMute}>
-                  {isMicOn ? <Mic /> : <MicOff />}
-                </Button>
-                <Button
-                  className={classes.button}
-                  variant="contained"
-                  color="primary"
-                  disabled={isLoadingDisplay}
-                  onClick={handleToggleDisplay}
-                >
-                  {myStream ? <ScreenShare /> : <StopScreenShare />}
-                </Button>
-                <Button variant="outlined" color="default" onClick={isOpenSettings} className={classes.button}>
-                  <Settings />
-                </Button>
-              </Box>
-            </Toolbar>
-          </AppBar>
+      <Drawer anchor="right" open={true} variant="permanent">
+        <Box width={drawerWidth}>
+          <List>
+            {users.map(({ id, name, isMe }) => (
+              <ListItem key={id}>
+                {name} {isMe && '*'}
+              </ListItem>
+            ))}
+          </List>
         </Box>
-      </AppWrapper>
+      </Drawer>
+      <Box bgcolor="#000" mr={`${drawerWidth}px`} height="100%">
+        <AutoSpliter splitNum={streamingUser.length}>
+          {streamingUser.map(({ id, name, isMe, stream }) => (
+            <UserVideoField key={id}>
+              <VideoUserName>
+                {name} {isMe && '*'}
+              </VideoUserName>
+              <Preview src={isMe ? myStream : stream} />
+            </UserVideoField>
+          ))}
+        </AutoSpliter>
+        <AppBar position="fixed" className={classes.controller}>
+          <Toolbar>
+            <Box display="flex" justifyContent="center" width="100%">
+              <Button className={classes.button} variant="outlined" color="default" onClick={toggleMute}>
+                {isMicOn ? <Mic /> : <MicOff />}
+              </Button>
+              <Button
+                className={classes.button}
+                variant="contained"
+                color="primary"
+                disabled={isLoadingDisplay}
+                onClick={handleToggleDisplay}
+              >
+                {myStream ? <ScreenShare /> : <StopScreenShare />}
+              </Button>
+              <Button variant="outlined" color="default" onClick={isOpenSettings} className={classes.button}>
+                <Settings />
+              </Button>
+            </Box>
+          </Toolbar>
+        </AppBar>
+      </Box>
       <BroadcastSettings {...settingsProp} />
     </>
   );
@@ -197,13 +184,8 @@ const AppWrapper = styled.div`
   height: 100vh;
 `;
 
-const VideoField = styled.div`
-  /*  box-sizing: border-box;
-  padding: 10px;*/
-`;
-
 const UserVideoField = styled.div`
-  /*  position: relative;*/
+  position: relative;
 `;
 
 const VideoUserName = styled.div`
