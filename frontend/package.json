@@ -1,7 +1,7 @@
 {
   "name": "sagyoip",
   "version": "0.1.0",
-  "main": "index.js",
+  "main": "src/index.html",
   "author": "Mushus <Mushus.wynd@gmail.com>",
   "license": "MIT",
   "scripts": {

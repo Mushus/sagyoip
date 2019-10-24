@@ -3,9 +3,10 @@ import Connector, { EventUser, MyUser, UpdateUsers, Offer, Answer, IceCandidate 
 
 export default class Room {
   private _users: Array<User> = [];
-  private _stream: MediaStream | null = null;
   private _myId: number | undefined;
   private readonly _connector: Connector;
+  private _localDisplayStream: MediaStream | null = null;
+  private _localMicStream: MediaStream | null = null;
 
   onUpdateUsers: ((users: ReadonlyArray<User>) => any) | null | undefined;
 
@@ -25,6 +26,20 @@ export default class Room {
     return this._users;
   }
 
+  close() {
+    this.users.forEach(user => user.close());
+  }
+
+  setDisplayStream(stream: MediaStream | null) {
+    this.users.forEach(user => user.attachDisplayStream(stream));
+    this._localDisplayStream = stream;
+  }
+
+  setMicStream(stream: MediaStream | null) {
+    this.users.forEach(user => user.attachMicStream(stream));
+    this._localMicStream = stream;
+  }
+
   private updateUsers({ users }: { users: ReadonlyArray<EventUser> }) {
     const added = users.filter(user => !this.users.find(found => found.id === user.id));
 
@@ -37,14 +52,15 @@ export default class Room {
     const newMembers = added.map(eventUser => {
       const isMe = eventUser.id === this._myId;
       const newMember = new User(this._connector, eventUser.id, eventUser.name, isMe);
-      newMember.onupdate = () => this.emitUpdateUser();
       return newMember;
     });
 
-    const stream = this._stream;
-    if (stream) {
-      newMembers.forEach(member => member.openBroadcast(stream));
-    }
+    newMembers.forEach(async member => {
+      member.onupdate = () => this.emitUpdateUser();
+      this._localDisplayStream && (await member.attachDisplayStream(this._localDisplayStream));
+      this._localMicStream && (await member.attachDisplayStream(this._localMicStream));
+      this._myId && (await await member.startPeer(this._myId));
+    });
 
     deleted.forEach(user => user.close());
 
@@ -61,37 +77,22 @@ export default class Room {
   private routeOffer(from: number, description: RTCSessionDescription) {
     const user = this.users.find(user => user.id === from);
     if (!user) return;
-    user.offer(description);
+    user.receiveOffer(description);
   }
 
   private routeAnswer(from: number, description: RTCSessionDescription) {
     const user = this.users.find(user => user.id === from);
     if (!user) return;
-    //user.answer(description);
+    user.receiveAnswer(description);
   }
 
   private routeIceCandidate(from: number, iceCandidate: RTCIceCandidate) {
     const user = this.users.find(user => user.id === from);
     if (!user) return;
-    user.iceCandidate(iceCandidate);
+    user.receiveIceCandidate(iceCandidate);
   }
 
   private emitUpdateUser() {
     this.onUpdateUsers && this.onUpdateUsers(this._users);
-  }
-  setVideoStream(stream: MediaStream | null) {
-    if (this._stream == stream) return;
-
-    this._stream = stream;
-
-    if (stream != null) {
-      this.users.forEach(user => user.openBroadcast(stream));
-    } else {
-      this.users.forEach(user => user.closeBroadcast());
-    }
-  }
-
-  close() {
-    this.users.forEach(user => user.close());
   }
 }

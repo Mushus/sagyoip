@@ -1,14 +1,18 @@
-import Connector, { Answer } from '~/connector/Connector';
-import Peer from '~/connector/Peer';
+import Connector from '~/connector/Connector';
+
+const config = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
 
 export default class User {
   private _isMe: boolean;
   private _id: number;
   private _name: string;
   private _connector: Connector;
-  private _sender: Peer | null = null;
-  private _receiver: Peer | null = null;
-  private _stream: MediaStream | null = null;
+  private _peer: RTCPeerConnection | null;
+  private _localVideoSender: RTCRtpSender | null = null;
+  private _localAudioSender: RTCRtpSender | null = null;
+  private _remoteDisplayStream: MediaStream | null = null;
+  private _localMicSender: RTCRtpSender | null = null;
+  private _remoteMicStream: MediaStream | null = null;
 
   onupdate: ((user: User) => any) | null = null;
 
@@ -17,6 +21,22 @@ export default class User {
     this._name = name;
     this._isMe = isMe;
     this._connector = con;
+
+    if (isMe) return;
+
+    const peer = new RTCPeerConnection(config);
+
+    peer.onicecandidate = e => {
+      console.log('iceCandidate: %o', e);
+      e.candidate && con.sendCandidate(id, e.candidate);
+    };
+
+    peer.ontrack = e => {
+      console.log('track: %o', e);
+      this.updateRemoteStream(e.streams);
+    };
+
+    this._peer = peer;
   }
 
   get id() {
@@ -28,83 +48,138 @@ export default class User {
   get isMe() {
     return this._isMe;
   }
-
-  async openBroadcast(stream: MediaStream) {
-    if (this.isMe) return;
-
-    this.closeBroadcast();
-
-    const sender = new Peer(candidate => this.sendIceCandidate(candidate));
-    this._sender = sender;
-    sender.startSendConnection(stream, description => this.sendOffer(description));
+  get remoteDisplayStream() {
+    return this._remoteDisplayStream;
+  }
+  get remoteMicStream() {
+    return this._remoteMicStream;
   }
 
-  closeBroadcast() {
-    if (this.isMe) return;
-    if (!this._sender) return;
+  async attachDisplayStream(stream: MediaStream | null) {
+    if (!this._peer) return;
 
-    this._sender.close();
-    this._sender = null;
-  }
+    console.log('attachDisplayStream: %o', stream);
 
-  offer(description: RTCSessionDescription) {
-    const receiver = new Peer(iceCandidate => this.sendIceCandidate(iceCandidate));
-    this._receiver = receiver;
-    receiver.startReceiveConnection(
-      description,
-      description => this.sendAnswer(description),
-      stream => this.updateStream(stream),
-    );
-    receiver.onClose = status => {
-      if (status === 'failed' || status === 'closed') {
-        this.closeReceiver();
+    let videoTrack: MediaStreamTrack | undefined;
+    let audioTrack: MediaStreamTrack | undefined;
+
+    if (stream) {
+      videoTrack = stream.getVideoTracks().find(() => true);
+      audioTrack = stream.getAudioTracks().find(() => true);
+    }
+
+    if (this._localVideoSender) {
+      // HACK: trackが一緒だからとstreamに属してるとは限らないがそういうものだと仮定する
+      if (videoTrack) {
+        await this._localVideoSender.replaceTrack(videoTrack);
+      } else {
+        this._peer.removeTrack(this._localVideoSender);
+        this._localVideoSender = null;
       }
+    } else {
+      if (videoTrack && stream) {
+        this._localVideoSender = this._peer.addTrack(videoTrack, stream);
+      }
+    }
+
+    console.log('audio track add: %o', audioTrack);
+    if (this._localAudioSender) {
+      // HACK: trackが一緒だからとstreamに属してるとは限らないがそういうものだと仮定する
+      if (audioTrack) {
+        await this._localAudioSender.replaceTrack(audioTrack);
+      } else {
+        this._peer.removeTrack(this._localAudioSender);
+        this._localAudioSender = null;
+      }
+    } else {
+      if (audioTrack && stream) {
+        this._localAudioSender = this._peer.addTrack(audioTrack, stream);
+      }
+    }
+  }
+
+  async attachMicStream(stream: MediaStream | null) {
+    if (!this._peer) return;
+
+    console.log('attachMicStream: %o', stream);
+
+    let micTrack: MediaStreamTrack | undefined;
+
+    if (stream) {
+      micTrack = stream.getAudioTracks().find(() => true);
+    }
+
+    if (this._localMicSender) {
+      // HACK: trackが一緒だからとstreamに属してるとは限らないがそういうものだと仮定する
+      if (micTrack && stream) {
+        await this._localMicSender.replaceTrack(micTrack);
+      } else {
+        this._peer.removeTrack(this._localMicSender);
+        this._localMicSender = null;
+      }
+    } else {
+      if (micTrack && stream) {
+        this._localMicSender = this._peer.addTrack(micTrack, stream);
+      }
+    }
+  }
+
+  async startPeer(userId: number) {
+    console.log('start peer %o, %o', userId, this.id);
+    const peer = this._peer;
+    if (!peer) return;
+
+    peer.onnegotiationneeded = async e => {
+      console.log('negotiationneeded: %o', e);
+      const offer = await peer.createOffer();
+      await peer.setLocalDescription(offer);
+      this._connector.sendOffer(this.id, offer);
     };
+
+    // id によって Send するか Receive するか決める
+    if (userId < this.id) return;
+
+    console.log('start peer ok %o, %o', userId, this.id);
+
+    const offer = await peer.createOffer();
+    await peer.setLocalDescription(offer);
+    this._connector.sendOffer(this.id, offer);
   }
 
-  iceCandidate(iceCandidate: RTCIceCandidate) {
-    this._sender && this._sender.addCandidate(iceCandidate);
-    this._receiver && this._receiver.addCandidate(iceCandidate);
+  async receiveIceCandidate(iceCandidate: RTCIceCandidate) {
+    const peer = this._peer;
+    if (!peer) return;
+
+    await peer.addIceCandidate(iceCandidate);
   }
 
-  closeReceiver() {
-    if (!this._receiver) return;
-    this._receiver.close();
-    this._receiver = null;
+  async receiveOffer(offer: RTCSessionDescription) {
+    const peer = this._peer;
+    if (!peer) return;
+
+    await peer.setRemoteDescription(offer);
+    const answer = await peer.createAnswer();
+    await peer.setLocalDescription(answer);
+    this._connector.sendAnswer(this.id, answer);
+  }
+
+  async receiveAnswer(answer: RTCSessionDescriptionInit) {
+    const peer = this._peer;
+    if (!peer) return;
+    console.log(answer);
+    await peer.setRemoteDescription(answer);
   }
 
   close() {
-    this.closeReceiver();
-    this.closeBroadcast();
+    this._peer && this._peer.close();
   }
 
-  private async sendOffer(description: RTCSessionDescriptionInit): Promise<RTCSessionDescription> {
-    await this._connector.sendOffer(this.id, description);
+  private updateRemoteStream(streams: readonly MediaStream[]) {
+    const displayStream = streams.find(stream => stream.getVideoTracks().length > 0);
+    const micStream = streams.find(stream => stream.getVideoTracks().length === 0);
+    this._remoteDisplayStream = displayStream || null;
+    this._remoteMicStream = micStream || null;
 
-    const answer = await new Promise<RTCSessionDescription>(resolve => {
-      this._connector.on<Answer>('answer', ({ from, description }) => {
-        if (from !== this.id) return;
-        resolve(description);
-      });
-    });
-
-    return answer;
-  }
-
-  private async sendAnswer(description: RTCSessionDescriptionInit) {
-    await this._connector.sendAnswer(this.id, description);
-  }
-
-  private async sendIceCandidate(iceCandidate: RTCIceCandidate) {
-    await this._connector.sendCandidate(this.id, iceCandidate);
-  }
-
-  private updateStream(stream: MediaStream | null) {
-    this._stream = stream;
     this.onupdate && this.onupdate(this);
-  }
-
-  get stream() {
-    return this._stream;
   }
 }

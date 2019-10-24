@@ -14,11 +14,9 @@ import {
 } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import { DefaultFps, DefaultResolutions, FpsOptions, ResolutionOptions } from '~/consts';
+import { useBroadcastContext } from '~/reducer/Broadcast';
 
-interface Props {
-  open: boolean;
-  onClose: () => void;
-}
+interface Props {}
 
 const useStyle = makeStyles(() => ({
   formControl: {
@@ -27,19 +25,25 @@ const useStyle = makeStyles(() => ({
   },
 }));
 
-export default ({ open, onClose }: Props) => {
+export default ({  }: Props) => {
+  const [{ isOpenSetting }, dispatch] = useBroadcastContext();
   const [frameRates, setFrameRates] = useState(DefaultFps);
   const [resolutions, setResolutions] = useState(DefaultResolutions);
 
   const onOK = useCallback(() => {
-    onClose();
-  }, [onClose]);
+    dispatch({ type: 'closeSettings' });
+  }, []);
+
+  const onClose = useCallback(() => {
+    dispatch({ type: 'closeSettings' });
+  }, []);
 
   const updateFrameRates = useCallback((e: ChangeEvent<{ value: number }>) => {
     const value = e.target.value;
     const frameRate = FpsOptions.find(fps => fps === value) || DefaultFps;
     setFrameRates(frameRate);
   }, []);
+
   const updateResolutions = useCallback((e: ChangeEvent<{ value: string }>) => {
     const value = e.target.value;
     const resolution = Object.keys(ResolutionOptions).find(key => key === value) || DefaultResolutions;
@@ -47,9 +51,8 @@ export default ({ open, onClose }: Props) => {
   }, []);
 
   const classes = useStyle();
-
   return (
-    <Dialog open={open} onClose={onClose}>
+    <Dialog open={isOpenSetting} onClose={onClose}>
       <DialogTitle>Broadcast Settings</DialogTitle>
       <DialogContent>
         <List>
