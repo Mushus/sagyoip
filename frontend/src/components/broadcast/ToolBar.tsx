@@ -74,7 +74,7 @@ const ToolBar = () => {
       <Box display="flex" justifyContent="center" width="100%">
         <Button
           className={classes.button}
-          variant="contained"
+          variant={displayStream ? 'contained' : 'outlined'}
           color="primary"
           disabled={disabledDisplayMedia || loadingDisplayMedia}
           onClick={toggleDisplayMedia}
@@ -83,7 +83,7 @@ const ToolBar = () => {
         </Button>
         <Button
           className={classes.button}
-          variant="contained"
+          variant={userStream ? 'contained' : 'outlined'}
           color="primary"
           disabled={disabledUserMedia || loadingUserMedia}
           onClick={toggleUserMedia}

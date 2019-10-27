@@ -129,33 +129,38 @@ export default class User {
     const peer = this._peer;
     if (!peer) return;
 
-    peer.onnegotiationneeded = async e => {
-      console.log('negotiationneeded: %o', e);
+    try {
+      // id によって Send するか Receive するか決める
+      if (userId > this.id) return;
+
+      console.log('start peer ok %o, %o', userId, this.id);
+
       const offer = await peer.createOffer();
       await peer.setLocalDescription(offer);
       this._connector.sendOffer(this.id, offer);
-    };
-
-    // id によって Send するか Receive するか決める
-    if (userId < this.id) return;
-
-    console.log('start peer ok %o, %o', userId, this.id);
-
-    const offer = await peer.createOffer();
-    await peer.setLocalDescription(offer);
-    this._connector.sendOffer(this.id, offer);
+    } finally {
+      peer.onnegotiationneeded = async e => {
+        console.log('negotiationneeded: %o', e);
+        const offer = await peer.createOffer();
+        await peer.setLocalDescription(offer);
+        this._connector.sendOffer(this.id, offer);
+      };
+    }
   }
 
   async receiveIceCandidate(iceCandidate: RTCIceCandidate) {
     const peer = this._peer;
     if (!peer) return;
 
+    console.log('receiveIceCandidate %o', peer);
     await peer.addIceCandidate(iceCandidate);
   }
 
   async receiveOffer(offer: RTCSessionDescription) {
     const peer = this._peer;
     if (!peer) return;
+
+    console.log('receiveOffer %o', peer);
 
     await peer.setRemoteDescription(offer);
     const answer = await peer.createAnswer();

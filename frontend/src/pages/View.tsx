@@ -69,9 +69,9 @@ const ConnectView = (props: { roomId: string; userName: string }) => {
       <Drawer anchor="right" open={true} variant="permanent">
         <Box width={drawerWidth}>
           <List>
-            {users.map(({ id, name, isMe }) => (
+            {users.map(({ id, name, isMe, remoteMicStream }) => (
               <ListItem key={id}>
-                {name} {isMe && '*'}
+                {name} {isMe && '*'} {remoteMicStream && <Mic src={remoteMicStream} />}
               </ListItem>
             ))}
           </List>
@@ -84,7 +84,7 @@ const ConnectView = (props: { roomId: string; userName: string }) => {
               <VideoUserName>
                 {name} {isMe && '*'}
               </VideoUserName>
-              <Preview src={isMe ? displayStream : remoteDisplayStream} />
+              <Preview src={isMe ? displayStream : remoteDisplayStream} isLocal={isMe} />
             </UserVideoField>
           ))}
         </AutoSpliter>
@@ -134,13 +134,22 @@ const useRoom = (roomId: string, userName: string) => {
   return [users];
 };
 
-const Preview = ({ src }: { src: MediaStream | null }) => {
+const Preview = ({ src, isLocal }: { src: MediaStream | null; isLocal: boolean }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   useEffect(() => {
     videoRef.current && (videoRef.current.srcObject = src);
   }, [src, videoRef.current]);
 
-  return <VideoPreview playsInline autoPlay ref={videoRef} />;
+  return <VideoPreview playsInline autoPlay ref={videoRef} muted={isLocal} />;
+};
+
+const Mic = ({ src }: { src: MediaStream | null }) => {
+  const audioRef = useRef<HTMLAudioElement>(null);
+  useEffect(() => {
+    audioRef.current && (audioRef.current.srcObject = src);
+  }, [src, audioRef.current]);
+
+  return <audio autoPlay controls ref={audioRef} />;
 };
 
 const color = {
