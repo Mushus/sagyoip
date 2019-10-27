@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import styled from 'styled-components';
-import { Drawer, Box, List, ListItem, AppBar } from '@material-ui/core';
+import { Box, AppBar } from '@material-ui/core';
 import H from 'history';
 import { match } from 'react-router-dom';
 import Room from '~/connector/Room';
@@ -11,14 +11,8 @@ import ToolBar from '~/components/broadcast/ToolBar';
 import ChooseName from '~/components/room/ChooseName';
 import { useLocalStorage } from '~/localStorage';
 import { useBroadcastContext, BroadcastProvider } from '~/reducer/Broadcast';
-
-interface UserData {
-  id: number;
-  name: string;
-  remoteDisplayStream: MediaStream | null;
-  remoteMicStream: MediaStream | null;
-  isMe: boolean;
-}
+import CustomDrawer, { DrawerWidth } from '~/components/broadcast/Drawer';
+import { UserData } from '~/interfaces';
 
 interface Props {
   match: match<{ id: string }>;
@@ -40,14 +34,12 @@ export default ({ match }: Props) => {
   );
 };
 
-const drawerWidth = 240;
-
 const useStyles = makeStyles(theme => ({
   controller: {
     top: 'auto',
     bottom: 0,
     left: 0,
-    right: `${drawerWidth}px`,
+    right: `${DrawerWidth}px`,
     width: 'auto',
     backgroundColor: 'transparent',
   },
@@ -63,21 +55,10 @@ const ConnectView = (props: { roomId: string; userName: string }) => {
   const streamingUser = users.filter(({ remoteDisplayStream, isMe }) => (isMe ? displayStream : remoteDisplayStream));
 
   const classes = useStyles();
-
   return (
     <>
-      <Drawer anchor="right" open={true} variant="permanent">
-        <Box width={drawerWidth}>
-          <List>
-            {users.map(({ id, name, isMe, remoteMicStream }) => (
-              <ListItem key={id}>
-                {name} {isMe && '*'} {remoteMicStream && <Mic src={remoteMicStream} />}
-              </ListItem>
-            ))}
-          </List>
-        </Box>
-      </Drawer>
-      <Box bgcolor="#000" mr={`${drawerWidth}px`} height="100%">
+      <CustomDrawer users={users} />
+      <Box bgcolor="#000" mr={`${DrawerWidth}px`} height="100%">
         <AutoSpliter splitNum={streamingUser.length}>
           {streamingUser.map(({ id, name, isMe, remoteDisplayStream }) => (
             <UserVideoField key={id}>
@@ -141,15 +122,6 @@ const Preview = ({ src, isLocal }: { src: MediaStream | null; isLocal: boolean }
   }, [src, videoRef.current]);
 
   return <VideoPreview playsInline autoPlay ref={videoRef} muted={isLocal} />;
-};
-
-const Mic = ({ src }: { src: MediaStream | null }) => {
-  const audioRef = useRef<HTMLAudioElement>(null);
-  useEffect(() => {
-    audioRef.current && (audioRef.current.srcObject = src);
-  }, [src, audioRef.current]);
-
-  return <audio autoPlay controls ref={audioRef} />;
 };
 
 const color = {

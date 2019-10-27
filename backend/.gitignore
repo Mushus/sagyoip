@@ -1,4 +1,4 @@
+assets/.gitkeep
+!assets/.gitkeep
 tmp
 dist
-assets
-!assets/.gitkeep

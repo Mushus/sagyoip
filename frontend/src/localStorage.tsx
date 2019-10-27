@@ -1,13 +1,18 @@
 import React, { useMemo, useState, ReactNode, createContext, useContext, useCallback } from 'react';
+import { DefaultFps, DefaultResolutions } from './consts';
 
 const localStorageKey = 'userData';
 
 interface State {
   name: string;
+  frameRates: number;
+  resolution: string;
 }
 
 interface Dispatch {
   updateName: (name: string) => void;
+  updateFrameRates: (fps: number) => void;
+  updateResolution: (resolution: string) => void;
 }
 
 const loadLocalStorage = (initialValue: State): State => {
@@ -23,6 +28,8 @@ const loadLocalStorage = (initialValue: State): State => {
 
 const initialValue = loadLocalStorage({
   name: '',
+  frameRates: DefaultFps,
+  resolution: DefaultResolutions,
 });
 
 const LocalStorageContext = createContext<[State, Dispatch] | undefined>(undefined);
@@ -51,6 +58,8 @@ export const LocalStorageProvider = ({ children }: Props) => {
       state,
       {
         updateName: (name: string) => updateState({ ...state, name }),
+        updateFrameRates: (frameRates: number) => updateState({ ...state, frameRates }),
+        updateResolution: (resolution: string) => updateState({ ...state, resolution }),
       },
     ],
     [state],

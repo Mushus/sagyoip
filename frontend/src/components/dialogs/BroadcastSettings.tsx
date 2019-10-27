@@ -13,8 +13,9 @@ import {
   InputLabel,
 } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
-import { DefaultFps, DefaultResolutions, FpsOptions, ResolutionOptions } from '~/consts';
+import { FpsOptions, ResolutionOptions } from '~/consts';
 import { useBroadcastContext } from '~/reducer/Broadcast';
+import { useLocalStorage } from '~/localStorage';
 
 interface Props {}
 
@@ -27,12 +28,18 @@ const useStyle = makeStyles(() => ({
 
 export default ({  }: Props) => {
   const [{ isOpenSetting }, dispatch] = useBroadcastContext();
-  const [frameRates, setFrameRates] = useState(DefaultFps);
-  const [resolutions, setResolutions] = useState(DefaultResolutions);
+  const [
+    { frameRates: defaultFramerates, resolution: defaultResolution },
+    { updateFrameRates: saveFrameRates, updateResolution: saveResolution },
+  ] = useLocalStorage();
+  const [frameRates, setFrameRates] = useState(defaultFramerates);
+  const [resolutions, setResolutions] = useState(defaultResolution);
 
   const onOK = useCallback(() => {
+    saveFrameRates(frameRates);
+    saveResolution(resolutions);
     dispatch({ type: 'closeSettings' });
-  }, []);
+  }, [frameRates, resolutions]);
 
   const onClose = useCallback(() => {
     dispatch({ type: 'closeSettings' });
@@ -40,13 +47,13 @@ export default ({  }: Props) => {
 
   const updateFrameRates = useCallback((e: ChangeEvent<{ value: number }>) => {
     const value = e.target.value;
-    const frameRate = FpsOptions.find(fps => fps === value) || DefaultFps;
+    const frameRate = FpsOptions.find(fps => fps === value) || defaultFramerates;
     setFrameRates(frameRate);
   }, []);
 
   const updateResolutions = useCallback((e: ChangeEvent<{ value: string }>) => {
     const value = e.target.value;
-    const resolution = Object.keys(ResolutionOptions).find(key => key === value) || DefaultResolutions;
+    const resolution = Object.keys(ResolutionOptions).find(key => key === value) || defaultResolution;
     setResolutions(resolution);
   }, []);
 

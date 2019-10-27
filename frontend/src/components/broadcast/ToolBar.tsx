@@ -3,6 +3,8 @@ import { Box, Toolbar, Button } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import { ScreenShare, StopScreenShare, Settings, Mic, MicOff } from '@material-ui/icons';
 import { useBroadcastContext } from '~/reducer/Broadcast';
+import { useLocalStorage } from '~/localStorage';
+import { ResolutionOptions } from '~/consts';
 
 const useStyles = makeStyles(theme => ({
   button: {
@@ -12,6 +14,7 @@ const useStyles = makeStyles(theme => ({
 
 const ToolBar = () => {
   const [{ displayStream, userStream }, dispatch] = useBroadcastContext();
+  const [{ frameRates, resolution }] = useLocalStorage();
   const [disabledDisplayMedia, setDisabledDisplayMedia] = useState(false);
   const [loadingDisplayMedia, setLoadingDisplayMedia] = useState(false);
   const [disabledUserMedia, setDisableUserMedia] = useState(false);
@@ -25,7 +28,18 @@ const ToolBar = () => {
     if (!displayStream) {
       setLoadingDisplayMedia(true);
       try {
-        const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+        const resolutionInfo = ResolutionOptions[resolution];
+        const videoConstraint: MediaTrackConstraints = {
+          frameRate: frameRates,
+        };
+        if (resolutionInfo) {
+          videoConstraint.width = resolutionInfo.width;
+          videoConstraint.height = resolutionInfo.height;
+        }
+        const stream = await navigator.mediaDevices.getDisplayMedia({
+          video: videoConstraint,
+          audio: true,
+        });
         console.log(stream.getTracks());
         dispatch({ type: 'updateDisplayStream', payload: stream });
       } catch (e) {
@@ -90,7 +104,7 @@ const ToolBar = () => {
         >
           {userStream ? <Mic /> : <MicOff />}
         </Button>
-        <Button variant="outlined" color="default" onClick={isOpenSettings} className={classes.button}>
+        <Button variant="contained" color="default" onClick={isOpenSettings} className={classes.button}>
           <Settings />
         </Button>
       </Box>

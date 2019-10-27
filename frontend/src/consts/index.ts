@@ -1,7 +1,7 @@
 export const FpsOptions = [5, 10, 20, 30, 45, 60];
 export const DefaultFps = 20;
 
-export const ResolutionOptions = {
+export const ResolutionOptions: { [key: string]: { alias: string | null; width: number; height: number } } = {
   '240p': { alias: null, width: 427, height: 240 },
   '360p': { alias: null, width: 640, height: 360 },
   '480p': { alias: 'SD', width: 720, height: 480 },

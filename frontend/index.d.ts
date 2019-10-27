@@ -1,3 +1,9 @@
+interface MediaTrackConstraints {
+  frameRate?: number;
+  width?: number;
+  height?: number;
+}
+
 interface MediaDevices {
   getDisplayMedia(constraints?: MediaStreamConstraints | undefined): Promise<MediaStream>;
 }
