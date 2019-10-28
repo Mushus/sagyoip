@@ -59,7 +59,11 @@ const ToolBar = () => {
     if (!userStream) {
       setLoadingUserMedia(true);
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            channelCount: 1,
+          },
+        });
         console.log(stream);
         dispatch({ type: 'updateUserStream', payload: stream });
       } catch (e) {

@@ -1,4 +1,5 @@
 import Connector from '~/connector/Connector';
+import { setBandwidth } from '~/util/bandWidth';
 
 const config = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
 
@@ -136,12 +137,14 @@ export default class User {
       console.log('start peer ok %o, %o', userId, this.id);
 
       const offer = await peer.createOffer();
+      setBandwidth(offer);
       await peer.setLocalDescription(offer);
       this._connector.sendOffer(this.id, offer);
     } finally {
       peer.onnegotiationneeded = async e => {
         console.log('negotiationneeded: %o', e);
         const offer = await peer.createOffer();
+        setBandwidth(offer);
         await peer.setLocalDescription(offer);
         this._connector.sendOffer(this.id, offer);
       };
@@ -164,6 +167,7 @@ export default class User {
 
     await peer.setRemoteDescription(offer);
     const answer = await peer.createAnswer();
+    setBandwidth(answer);
     await peer.setLocalDescription(answer);
     this._connector.sendAnswer(this.id, answer);
   }
