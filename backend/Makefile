@@ -12,4 +12,4 @@ dev:
 
 build:
 	mkdir -p dist
-	GOOS=linux GOARCH=amd64 go build backend/main.go -o dist/sagyoip-linux-amd64
+	GOOS=linux GOARCH=amd64 go build -o dist/sagyoip-linux-amd64 .
