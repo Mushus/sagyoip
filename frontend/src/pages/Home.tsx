@@ -1,6 +1,6 @@
 import React, { useCallback, useState, useEffect } from 'react';
 import { Container, Box, Button, TextField, Grid } from '@material-ui/core';
-import { useLocalStorage } from '~/localStorage';
+import { useLocalStorage } from '~/reducer/localStorage';
 import { makeStyles } from '@material-ui/styles';
 import randomId from 'random-id';
 import { useHistory } from 'react-router-dom';

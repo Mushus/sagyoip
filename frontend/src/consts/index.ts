@@ -1,5 +1,5 @@
-export const FpsOptions = [5, 10, 20, 30, 45, 60];
-export const DefaultFps = 20;
+export const FrameRateOptions = [5, 10, 20, 30, 45, 60];
+export const DefaultFrameRate = 20;
 
 export const ResolutionOptions: { [key: string]: { alias: string | null; width: number; height: number } } = {
   '240p': { alias: null, width: 427, height: 240 },

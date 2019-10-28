@@ -4,6 +4,7 @@ interface State {
   displayStream: MediaStream | null;
   userStream: MediaStream | null;
   isOpenSetting: boolean;
+  isOpenDrawer: boolean;
 }
 
 type Action =
@@ -20,12 +21,19 @@ type Action =
     }
   | {
       type: 'closeSettings';
+    }
+  | {
+      type: 'openDrawer';
+    }
+  | {
+      type: 'closeDrawer';
     };
 
 const initialState: State = {
   displayStream: null,
   userStream: null,
   isOpenSetting: false,
+  isOpenDrawer: false,
 };
 
 const reducer = (state: State, action: Action): State => {
@@ -53,6 +61,18 @@ const reducer = (state: State, action: Action): State => {
         ...state,
         isOpenSetting: false,
       };
+    }
+    case 'openDrawer': {
+      return {
+        ...state,
+        isOpenDrawer: true,
+      }
+    }
+    case 'closeDrawer': {
+      return {
+        ...state,
+        isOpenDrawer: false,
+      }
     }
     default:
       throw new Error(`invalid action: ${action}`);
