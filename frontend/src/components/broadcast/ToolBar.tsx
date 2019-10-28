@@ -3,7 +3,7 @@ import { Box, Toolbar, Button } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import { ScreenShare, StopScreenShare, Settings, Mic, MicOff } from '@material-ui/icons';
 import { useBroadcastContext } from '~/reducer/Broadcast';
-import { useLocalStorage } from '~/localStorage';
+import { useLocalStorage } from '~/reducer/localStorage';
 import { ResolutionOptions } from '~/consts';
 
 const useStyles = makeStyles(theme => ({
@@ -14,7 +14,7 @@ const useStyles = makeStyles(theme => ({
 
 const ToolBar = () => {
   const [{ displayStream, userStream }, dispatch] = useBroadcastContext();
-  const [{ frameRates, resolution }] = useLocalStorage();
+  const [{ frameRate, resolution }] = useLocalStorage();
   const [disabledDisplayMedia, setDisabledDisplayMedia] = useState(false);
   const [loadingDisplayMedia, setLoadingDisplayMedia] = useState(false);
   const [disabledUserMedia, setDisableUserMedia] = useState(false);
@@ -30,7 +30,7 @@ const ToolBar = () => {
       try {
         const resolutionInfo = ResolutionOptions[resolution];
         const videoConstraint: MediaTrackConstraints = {
-          frameRate: frameRates,
+          frameRate,
         };
         if (resolutionInfo) {
           videoConstraint.width = resolutionInfo.width;

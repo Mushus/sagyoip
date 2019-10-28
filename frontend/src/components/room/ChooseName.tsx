@@ -1,6 +1,6 @@
 import React, { useCallback, useState, ChangeEvent } from 'react';
 import { Button, TextField, Grid } from '@material-ui/core';
-import { useLocalStorage } from '~/localStorage';
+import { useLocalStorage } from '~/reducer/localStorage';
 import { makeStyles } from '@material-ui/styles';
 
 const useStyles = makeStyles(() => ({
@@ -15,7 +15,7 @@ export default () => {
   const [input, setInput] = useState(name);
 
   const editInput = useCallback((e: ChangeEvent<HTMLInputElement>) => setInput(e.target.value), []);
-  const handleUpdate = useCallback(() => dispatch.updateName(input), [input]);
+  const handleUpdate = useCallback(() => dispatch({type: 'updateName', payload: input }), [input]);
 
   const classes = useStyles();
 

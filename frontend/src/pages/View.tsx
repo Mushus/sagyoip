@@ -9,10 +9,11 @@ import AutoSpliter from '~/components/AutoSpliter';
 import BroadcastSettings from '~/components/dialogs/BroadcastSettings';
 import ToolBar from '~/components/broadcast/ToolBar';
 import ChooseName from '~/components/room/ChooseName';
-import { useLocalStorage } from '~/localStorage';
+import { useLocalStorage } from '~/reducer/localStorage';
 import { useBroadcastContext, BroadcastProvider } from '~/reducer/Broadcast';
-import CustomDrawer, { DrawerWidth } from '~/components/broadcast/Drawer';
+import CustomDrawer from '~/components/broadcast/Drawer';
 import { UserData } from '~/interfaces';
+import Main from '~/components/broadcast/Main';
 
 interface Props {
   match: match<{ id: string }>;
@@ -36,10 +37,11 @@ export default ({ match }: Props) => {
 
 const useStyles = makeStyles(theme => ({
   controller: {
+    position: 'absolute',
     top: 'auto',
     bottom: 0,
     left: 0,
-    right: `${DrawerWidth}px`,
+    right: 0,
     width: 'auto',
     backgroundColor: 'transparent',
   },
@@ -58,7 +60,7 @@ const ConnectView = (props: { roomId: string; userName: string }) => {
   return (
     <>
       <CustomDrawer users={users} />
-      <Box bgcolor="#000" mr={`${DrawerWidth}px`} height="100%">
+      <Main>
         <AutoSpliter splitNum={streamingUser.length}>
           {streamingUser.map(({ id, name, isMe, remoteDisplayStream }) => (
             <UserVideoField key={id}>
@@ -72,7 +74,7 @@ const ConnectView = (props: { roomId: string; userName: string }) => {
         <AppBar position="fixed" className={classes.controller}>
           <ToolBar />
         </AppBar>
-      </Box>
+      </Main>
       <BroadcastSettings />
     </>
   );
