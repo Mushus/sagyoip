@@ -1,6 +1,11 @@
 import React, { ReactNode, useCallback } from 'react';
-import { Drawer, Box, List, ListItem, Divider, IconButton } from '@material-ui/core';
-import { ChevronRight } from '@material-ui/icons';
+import Drawer from '@material-ui/core/Drawer';
+import Box from '@material-ui/core/Box';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import Divider from '@material-ui/core/Divider';
+import IconButton from '@material-ui/core/IconButton';
+import ChevronRight from '@material-ui/icons/ChevronRight';
 import { useMedia } from 'react-use';
 import { UserData } from '~/interfaces';
 import Mic from './Mic';

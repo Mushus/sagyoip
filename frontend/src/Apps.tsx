@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { HashRouter as Router, Switch, Route } from 'react-router-dom';
 import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
-import { CssBaseline } from '@material-ui/core';
+import CssBaseline from '@material-ui/core/CssBaseline';
 import { LocalStorageProvider } from '~/reducer/localStorage';
 import Home from '~/pages/Home';
 import View from '~/pages/View';

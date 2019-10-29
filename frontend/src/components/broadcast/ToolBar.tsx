@@ -1,7 +1,13 @@
 import React, { useCallback, useState, useEffect } from 'react';
-import { Box, Toolbar, Button } from '@material-ui/core';
+import Box from '@material-ui/core/Box';
+import Toolbar from '@material-ui/core/Toolbar';
+import Button from '@material-ui/core/Button';
 import { makeStyles } from '@material-ui/core/styles';
-import { ScreenShare, StopScreenShare, Settings, Mic, MicOff } from '@material-ui/icons';
+import ScreenShare from '@material-ui/icons/ScreenShare';
+import StopScreenShare from '@material-ui/icons/StopScreenShare';
+import Settings from '@material-ui/icons/Settings';
+import Mic from '@material-ui/icons/Mic';
+import MicOff from '@material-ui/icons/MicOff';
 import { useBroadcastContext } from '~/reducer/Broadcast';
 import { useLocalStorage } from '~/reducer/localStorage';
 import { ResolutionOptions } from '~/consts';

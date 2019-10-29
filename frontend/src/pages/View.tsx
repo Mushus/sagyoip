@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import styled from 'styled-components';
-import { Box, AppBar } from '@material-ui/core';
+import Box from '@material-ui/core/Box';
+import AppBar from '@material-ui/core/AppBar';
 import H from 'history';
 import { match } from 'react-router-dom';
 import Room from '~/connector/Room';

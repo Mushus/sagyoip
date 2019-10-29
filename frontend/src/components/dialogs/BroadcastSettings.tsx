@@ -1,17 +1,15 @@
 import React, { useCallback, useState, ChangeEvent } from 'react';
-import {
-  List,
-  ListItem,
-  Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  FormControl,
-  Select,
-  MenuItem,
-  InputLabel,
-} from '@material-ui/core';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import Button from '@material-ui/core/Button';
+import Dialog from '@material-ui/core/Dialog';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogActions from '@material-ui/core/DialogActions';
+import FormControl from '@material-ui/core/FormControl';
+import Select from '@material-ui/core/Select';
+import MenuItem from '@material-ui/core/MenuItem';
+import InputLabel from '@material-ui/core/InputLabel';
 import { makeStyles } from '@material-ui/core/styles';
 import { FrameRateOptions, ResolutionOptions } from '~/consts';
 import { useBroadcastContext } from '~/reducer/Broadcast';
@@ -37,9 +35,9 @@ export default ({  }: Props) => {
       type: 'updateSettings',
       payload: {
         frameRate,
-        resolution
-      }
-    })
+        resolution,
+      },
+    });
     dispatch({ type: 'closeSettings' });
   }, [frameRate, resolution]);
 

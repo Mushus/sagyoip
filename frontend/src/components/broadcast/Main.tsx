@@ -2,8 +2,9 @@ import React, { ReactNode, useCallback } from 'react';
 import styled from 'styled-components';
 import clsx from 'clsx';
 import { useBroadcastContext } from '~/reducer/Broadcast';
-import { IconButton, Theme } from '@material-ui/core';
-import { Menu } from '@material-ui/icons';
+import IconButton from '@material-ui/core/IconButton';
+import { Theme } from '@material-ui/core';
+import Menu from '@material-ui/icons/Menu';
 import { useDrawerMedia, DrawerWidth } from './Drawer';
 import { makeStyles } from '@material-ui/styles';
 
