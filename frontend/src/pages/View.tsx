@@ -26,14 +26,17 @@ export default ({ match }: Props) => {
 
   return (
     <BroadcastProvider>
-      <AppWrapper>
-        <Box bgcolor="#000" width="100%" height="100%">
-          {!name ? <ChooseName /> : <ConnectView roomId={roomId} userName={name} />}
-        </Box>
-      </AppWrapper>
+      <AppWrapper>{!name ? <ChooseNameView /> : <ConnectView roomId={roomId} userName={name} />}</AppWrapper>
     </BroadcastProvider>
   );
 };
+
+const ChooseNameView = () => (
+  <Box padding={1}>
+    <h2>Enter your name:</h2>
+    <ChooseName />
+  </Box>
+);
 
 const useStyles = makeStyles(theme => ({
   controller: {
@@ -58,7 +61,7 @@ const ConnectView = (props: { roomId: string; userName: string }) => {
 
   const classes = useStyles();
   return (
-    <>
+    <Box bgcolor="#000" width="100%" height="100%">
       <CustomDrawer users={users} />
       <Main>
         <AutoSpliter splitNum={streamingUser.length}>
@@ -76,7 +79,7 @@ const ConnectView = (props: { roomId: string; userName: string }) => {
         </AppBar>
       </Main>
       <BroadcastSettings />
-    </>
+    </Box>
   );
 };
 
@@ -134,8 +137,8 @@ const color = {
 };
 
 const AppWrapper = styled.div`
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
 `;
 
 const UserVideoField = styled.div`

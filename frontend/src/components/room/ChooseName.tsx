@@ -15,7 +15,7 @@ export default () => {
   const [input, setInput] = useState(name);
 
   const editInput = useCallback((e: ChangeEvent<HTMLInputElement>) => setInput(e.target.value), []);
-  const handleUpdate = useCallback(() => dispatch({type: 'updateName', payload: input }), [input]);
+  const handleUpdate = useCallback(() => dispatch({ type: 'updateName', payload: input }), [input]);
 
   const classes = useStyles();
 

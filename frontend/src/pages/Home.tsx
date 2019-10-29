@@ -29,7 +29,7 @@ export default () => {
 
   return (
     <Container maxWidth="sm">
-      <h1>Home</h1>
+      <h1>Sagyoip</h1>
       <Box>
         <h2>your name: {name}</h2>
         <ChooseName />

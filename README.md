@@ -1,8 +1,17 @@
-# Sagyoip
+# sagyoip
 
-Minimal screen sharing web service
+A minimal screen sharing web service
 
 ## install
+
+for linux amd64
+
+```bash
+wget https://github.com/Mushus/sagyoip/releases/download/v0.2.0/sagyoip -O sagyoip
+chmod 755 sagyoip
+# run
+./sagyoip
+```
 
 ## Contribution
 
@@ -21,7 +30,7 @@ cd -
 
 developing frontend programs.
 
-```
+```bash
 cd frontend
 # run development server
 yarn dev
