@@ -6,7 +6,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "WS_URL=ws://localhost:8080/ws parcel ./src/index.html --host 0.0.0.0",
-    "build": "rm -rf ./dist && parcel build ./src/index.html --no-source-maps --experimental-scope-hoisting"
+    "build": "rm -rf ./dist && parcel build ./src/index.html --no-source-maps"
   },
   "devDependencies": {
     "@babel/core": "^7.6.4",
