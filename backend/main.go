@@ -2,9 +2,12 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/Mushus/sagyoip/backend/assets"
@@ -12,6 +15,62 @@ import (
 	"github.com/gin-gonic/gin"
 	"golang.org/x/net/websocket"
 )
+
+var (
+	logfile   = flag.String("logfile", "", "log file path")
+	accessLog = flag.Bool("access-log", false, "enable access log")
+)
+
+var logger *log.Logger
+
+func main() {
+	flag.Parse()
+
+	roomHandler := roomHandler{
+		rooms: newRoomRepo(),
+	}
+
+	logOut := os.Stdout
+	if *logfile != "" {
+		f, err := os.OpenFile("testlogfile", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+		if err != nil {
+			log.Fatalf("failed to open log file: %v", err)
+		}
+		logOut = f
+	}
+
+	logger = log.New(logOut, "[Error] ", log.LstdFlags)
+
+	gin.DisableConsoleColor()
+	gin.SetMode(gin.ReleaseMode)
+
+	r := gin.New()
+	r.Use(gin.Recovery())
+	if *accessLog {
+		r.Use(gin.LoggerWithConfig(gin.LoggerConfig{
+			Formatter: func(param gin.LogFormatterParams) string {
+				return fmt.Sprintf("%s - [%s] \"%s %s %s %d %s \"%s\" %s\"\n",
+					param.ClientIP,
+					param.TimeStamp.Format(time.RFC1123),
+					param.Method,
+					param.Path,
+					param.Request.Proto,
+					param.StatusCode,
+					param.Latency,
+					param.Request.UserAgent(),
+					param.ErrorMessage,
+				)
+			},
+			Output: logOut,
+		}))
+	}
+
+	r.GET("/ws/:id", roomHandler.Get)
+	r.Use(static.Serve("/", serveFS{FileSystem: assets.Root}))
+	if err := r.Run(); err != nil {
+		logger.Fatalf("failed to start server: %v", err)
+	}
+}
 
 type serveFS struct {
 	http.FileSystem
@@ -23,17 +82,6 @@ func (s serveFS) Exists(prefix string, path string) bool {
 	}
 	_, err := s.Open(prefix + path)
 	return err != nil
-}
-
-func main() {
-	roomHandler := roomHandler{
-		rooms: newRoomRepo(),
-	}
-
-	r := gin.New()
-	r.GET("/ws/:id", roomHandler.Get)
-	r.Use(static.Serve("/", serveFS{FileSystem: assets.Root}))
-	r.Run()
 }
 
 type roomHandler struct {
@@ -76,7 +124,7 @@ func (r roomHandler) Get(c *gin.Context) {
 					Payload: eventData,
 				})
 				if err != nil {
-					log.Println(err)
+					logger.Println(err)
 				}
 				ws.Write(b)
 			}
@@ -97,7 +145,7 @@ func (r roomHandler) Get(c *gin.Context) {
 		for {
 			if err := decoder.Decode(&req); err != nil {
 				if err != io.EOF {
-					log.Println(err)
+					logger.Println(err)
 				}
 				break
 			}
@@ -105,21 +153,21 @@ func (r roomHandler) Get(c *gin.Context) {
 			case "offer":
 				var payload WSReqOfferPayload
 				if err := json.Unmarshal(req.Payload, &payload); err != nil {
-					log.Println(err)
+					logger.Println(err)
 					continue
 				}
 				r.rooms.offer(roomID, user, payload.To, payload.Description)
 			case "answer":
 				var payload WSReqAnswerPayload
 				if err := json.Unmarshal(req.Payload, &payload); err != nil {
-					log.Println(err)
+					logger.Println(err)
 					continue
 				}
 				r.rooms.answer(roomID, user, payload.To, payload.Description)
 			case "iceCandidate":
 				var payload WSReqICECandidatePayload
 				if err := json.Unmarshal(req.Payload, &payload); err != nil {
-					log.Println(err)
+					logger.Println(err)
 					continue
 				}
 				r.rooms.iceCandidate(roomID, user, payload.To, payload.ICECandidate)
