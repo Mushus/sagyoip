@@ -29,26 +29,30 @@ jobs:
         id: node
 
       - name: Install Go dependency
+        working-directory: ./backend
         run: |
-          cd ./backend
-          make dep
+          echo $PWD
+          which make
+          cat Makefile
+
+      - name: Install Go dependency
+        working-directory: ./backend
+        run: make dep
 
       - name: Build assets
-        run: |
-          cd ./frontend
-          yarn
-          yarn Build
+        working-directory: ./frontend
+        run: yarn && yarn build
 
       - name: Generate Go code
-        run: |
-          cd ./backend
-          make gen
+        working-directory: ./backend
+        run: make gen
 
       - name: Build Go code
-        run: |
-          make Build
+        working-directory: ./backend
+        run: make build
 
       - name: Publish Release
+        working-directory: ./backend
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
