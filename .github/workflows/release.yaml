@@ -30,6 +30,7 @@ jobs:
 
       - name: Install Go dependency
         run: |
+          cd ./backend
           make dep
 
       - name: Build assets
