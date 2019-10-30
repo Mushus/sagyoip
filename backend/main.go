@@ -38,8 +38,10 @@ func main() {
 		}
 		logOut = f
 	}
+	defer logOut.Close()
+	writer := newFileLogWriter(logOut)
 
-	logger = log.New(logOut, "[Error] ", log.LstdFlags)
+	logger = log.New(writer, "[Error] ", log.LstdFlags)
 
 	gin.DisableConsoleColor()
 	gin.SetMode(gin.ReleaseMode)
@@ -61,7 +63,7 @@ func main() {
 					param.ErrorMessage,
 				)
 			},
-			Output: logOut,
+			Output: writer,
 		}))
 	}
 
