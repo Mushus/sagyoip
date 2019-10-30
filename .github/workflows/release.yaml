@@ -16,6 +16,8 @@ jobs:
           export CREATE_EVENT_REF_TYPE=$(jq --raw-output .ref_type "$GITHUB_EVENT_PATH")
           if [ "$CREATE_EVENT_REF_TYPE" != "tag" ]; then echo "ref_type is not a tag: ${CREATE_EVENT_REF_TYPE}" && exit 78; fi
 
+      - uses: actions/checkout@master
+
       - name: Set up Go 1.13
         uses: actions/setup-go@v1
         with:
@@ -28,30 +30,22 @@ jobs:
           node-version: '10.x'
         id: node
 
-      - name: Install Go dependency
-        run: |
-          cd ./backend
-          make dep
-
       - name: Build assets
-        run: |
-          cd ./frontend
-          yarn
-          yarn Build
+        working-directory: ./frontend
+        run: yarn && yarn build
 
-      - name: Generate Go code
+      - name: Install, Generate, Build
+        working-directory: ./backend
         run: |
-          cd ./backend
+          export PATH=$PATH:$(go env GOPATH)/bin
+          GO111MODULE=off go get github.com/shogo82148/assets-life
           make gen
-
-      - name: Build Go code
-        run: |
-          make Build
-
-      - name: Publish Release
+          make build
+      - name: Publish release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          export PATH=$PATH:$(go env GOPATH)/bin
           export TAGNAME=$(jq --raw-output .ref "$GITHUB_EVENT_PATH")
-          go get -u github.com/tcnksm/ghr
-          $GOPATH/bin/ghr -n ${TAGNAME} -b "Release ${TAGNAME}" -draft ${TAGNAME} pkg/
+          GO111MODULE=off go get github.com/tcnksm/ghr
+          ghr -n ${TAGNAME} -b "Release ${TAGNAME}" -draft ${TAGNAME} pkg/
