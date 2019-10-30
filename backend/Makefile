@@ -11,5 +11,7 @@ dev:
 	fresh
 
 build:
-	mkdir -p dist
-	GOOS=linux GOARCH=amd64 go build -o dist/sagyoip-linux-amd64 .
+	GOOS=linux   GOARCH=amd64  go build -o ../pkg/sagyoip-linux-amd64 .
+	GOOS=linux   GOARCH=arm    go build -o ../pkg/sagyoip-linux-arm .
+	GOOS=windows GOARCH=amd64  go build -o ../pkg/sagyoip-win-amd64 .
+	GOOS=darwin   GOARCH=amd64 go build -o ../pkg/sagyoip-mac-amd64 .
