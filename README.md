@@ -38,7 +38,7 @@ yarn dev
 
 developing server side programs.
 
-``` bash
+```bash
 cd backend
 # Generate Assets
 make gen

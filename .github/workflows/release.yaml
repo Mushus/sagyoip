@@ -10,7 +10,6 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     steps:
-
       - name: Check event ref type
         run: |
           export CREATE_EVENT_REF_TYPE=$(jq --raw-output .ref_type "$GITHUB_EVENT_PATH")
@@ -25,7 +24,7 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v1
         with:
-          node-version: '10.x'
+          node-version: "10.x"
         id: node
 
       - name: Install Go dependency

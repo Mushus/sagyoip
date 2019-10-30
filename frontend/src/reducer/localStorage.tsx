@@ -40,22 +40,22 @@ const initialState = loadLocalStorage({
 });
 
 const reducer = (state: State, action: Action): State => {
-  switch(action.type) {
+  switch (action.type) {
     case 'updateName': {
       return {
         ...state,
-        name: action.payload
-      }
+        name: action.payload,
+      };
     }
-    case 'updateSettings':{
+    case 'updateSettings': {
       return {
         ...state,
-        ...action.payload
-      }
+        ...action.payload,
+      };
     }
   }
-  return state
-}
+  return state;
+};
 
 const StateContext = createContext<State>(null as any);
 const ActionContext = createContext<Dispatch<Action>>(null as any);
@@ -74,8 +74,8 @@ export const LocalStorageProvider = ({ children }: Props) => {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   useEffect(() => {
-    localStorage.setItem(localStorageKey, JSON.stringify(state))
-  }, [state])
+    localStorage.setItem(localStorageKey, JSON.stringify(state));
+  }, [state]);
 
   return (
     <StateContext.Provider value={state}>

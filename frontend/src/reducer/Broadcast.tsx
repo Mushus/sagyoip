@@ -66,13 +66,13 @@ const reducer = (state: State, action: Action): State => {
       return {
         ...state,
         isOpenDrawer: true,
-      }
+      };
     }
     case 'closeDrawer': {
       return {
         ...state,
         isOpenDrawer: false,
-      }
+      };
     }
     default:
       throw new Error(`invalid action: ${action}`);
