@@ -1,0 +1,7 @@
+{
+    'app.title': 'Sagyoipe',
+    'app.your_name_is': '名前: {name}',
+    'app.make_room.title': '部屋を建てる',
+    'app.make_room.join_button': '入室',
+}
+

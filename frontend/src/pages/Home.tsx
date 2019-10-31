@@ -9,6 +9,7 @@ import { makeStyles } from '@material-ui/styles';
 import randomId from 'random-id';
 import { useHistory } from 'react-router-dom';
 import ChooseName from '~/components/room/ChooseName';
+import { FormattedMessage } from 'react-intl';
 
 const useStyles = makeStyles(() => ({
   textForm: {
@@ -33,20 +34,20 @@ export default () => {
 
   return (
     <Container maxWidth="sm">
-      <h1>Sagyoip</h1>
+      <h1><FormattedMessage id="app.title" /></h1>
       <Box>
-        <h2>your name: {name}</h2>
+        <h2><FormattedMessage id="app.your_name_is" values={{ name: name }} /></h2>
         <ChooseName />
       </Box>
       <Box>
-        <h2>join room</h2>
+        <h2><FormattedMessage id="app.make_room.title" /></h2>
         <Grid container direction="row" spacing={1} className={classes.textForm}>
           <Grid item>
             <TextField type="text" margin="normal" value={roomId} />
           </Grid>
           <Grid item>
             <Button onClick={joinRoom} variant="contained" size="large" color="primary">
-              Join
+            <FormattedMessage id="app.make_room.join_button" />
             </Button>
           </Grid>
         </Grid>
