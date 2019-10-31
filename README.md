@@ -1,6 +1,10 @@
-# sagyoip
+# sagyoipe
 
 A minimal screen sharing web service
+
+"作業(Sagyo)" + "スカイプ(Skype)" = "さぎょイプ(sagyoipe)"
+
+In the Japanese Dojin(同人) comunity, Doing voice chat while working called "さぎょイプ(sagyoipe)"
 
 ## install
 
