@@ -10,7 +10,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/Mushus/sagyoip/backend/assets"
+	"github.com/Mushus/sagyoipe/backend/assets"
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/net/websocket"
