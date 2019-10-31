@@ -1,6 +1,9 @@
 {
     'app.title': 'Sagyoipe',
+    'app.description': 'A minimal screen sharing web service',
     'app.your_name_is': 'Your name: {name}',
+    'app.broadcast.share_button': 'Share',
+    'app.broadcast.copy_to_share_button': "Copy to share",
     'app.make_room.title': 'Make a room',
     'app.make_room.join_button': 'Join',
 }

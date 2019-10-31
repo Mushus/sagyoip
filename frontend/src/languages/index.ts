@@ -1,5 +1,6 @@
 import messagesEn from '~/languages/translations/en.json5';
 import messagesJa from '~/languages/translations/ja.json5';
+import {createIntl} from 'react-intl';
 
 export const messages: { [locale: string]: { [key: string]: string } } = {
   ja: messagesJa,
@@ -21,3 +22,10 @@ export const chooseLocale = () => {
   }
   return 'en';
 };
+
+const locale = chooseLocale()
+
+export const Intl = createIntl({
+  locale: locale,
+  messages: messages[locale]
+})
