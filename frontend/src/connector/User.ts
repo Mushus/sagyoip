@@ -28,12 +28,10 @@ export default class User {
     const peer = new RTCPeerConnection(config);
 
     peer.onicecandidate = e => {
-      console.log('iceCandidate: %o', e);
       e.candidate && con.sendCandidate(id, e.candidate);
     };
 
     peer.ontrack = e => {
-      console.log('track: %o', e);
       this.updateRemoteStream(e.streams);
     };
 
@@ -59,8 +57,6 @@ export default class User {
   async attachDisplayStream(stream: MediaStream | null) {
     if (!this._peer) return;
 
-    console.log('attachDisplayStream: %o', stream);
-
     let videoTrack: MediaStreamTrack | undefined;
     let audioTrack: MediaStreamTrack | undefined;
 
@@ -83,7 +79,6 @@ export default class User {
       }
     }
 
-    console.log('audio track add: %o', audioTrack);
     if (this._localAudioSender) {
       // HACK: trackが一緒だからとstreamに属してるとは限らないがそういうものだと仮定する
       if (audioTrack) {
@@ -101,8 +96,6 @@ export default class User {
 
   async attachMicStream(stream: MediaStream | null) {
     if (!this._peer) return;
-
-    console.log('attachMicStream: %o', stream);
 
     let micTrack: MediaStreamTrack | undefined;
 
@@ -126,7 +119,6 @@ export default class User {
   }
 
   async startPeer(userId: number) {
-    console.log('start peer %o, %o', userId, this.id);
     const peer = this._peer;
     if (!peer) return;
 
@@ -134,15 +126,12 @@ export default class User {
       // id によって Send するか Receive するか決める
       if (userId > this.id) return;
 
-      console.log('start peer ok %o, %o', userId, this.id);
-
       const offer = await peer.createOffer();
       setBandwidth(offer);
       await peer.setLocalDescription(offer);
       this._connector.sendOffer(this.id, offer);
     } finally {
       peer.onnegotiationneeded = async e => {
-        console.log('negotiationneeded: %o', e);
         const offer = await peer.createOffer();
         setBandwidth(offer);
         await peer.setLocalDescription(offer);
@@ -155,15 +144,12 @@ export default class User {
     const peer = this._peer;
     if (!peer) return;
 
-    console.log('receiveIceCandidate %o', peer);
     await peer.addIceCandidate(iceCandidate);
   }
 
   async receiveOffer(offer: RTCSessionDescription) {
     const peer = this._peer;
     if (!peer) return;
-
-    console.log('receiveOffer %o', peer);
 
     await peer.setRemoteDescription(offer);
     const answer = await peer.createAnswer();
@@ -175,7 +161,7 @@ export default class User {
   async receiveAnswer(answer: RTCSessionDescriptionInit) {
     const peer = this._peer;
     if (!peer) return;
-    console.log(answer);
+
     await peer.setRemoteDescription(answer);
   }
 
@@ -186,8 +172,22 @@ export default class User {
   private updateRemoteStream(streams: readonly MediaStream[]) {
     const displayStream = streams.find(stream => stream.getVideoTracks().length > 0);
     const micStream = streams.find(stream => stream.getVideoTracks().length === 0);
-    this._remoteDisplayStream = displayStream || null;
-    this._remoteMicStream = micStream || null;
+
+    if (displayStream) {
+      this._remoteDisplayStream = displayStream;
+      displayStream.onremovetrack = () => {
+        this._remoteDisplayStream = null;
+        this.onupdate && this.onupdate(this);
+      };
+    }
+
+    if (micStream) {
+      this._remoteMicStream = micStream;
+      micStream.onremovetrack = () => {
+        this._remoteMicStream = null;
+        this.onupdate && this.onupdate(this);
+      };
+    }
 
     this.onupdate && this.onupdate(this);
   }
