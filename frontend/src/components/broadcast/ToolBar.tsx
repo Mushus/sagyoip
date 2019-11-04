@@ -8,6 +8,8 @@ import StopScreenShare from '@material-ui/icons/StopScreenShare';
 import Settings from '@material-ui/icons/Settings';
 import Mic from '@material-ui/icons/Mic';
 import MicOff from '@material-ui/icons/MicOff';
+import Videocam from '@material-ui/icons/Videocam';
+import VideocamOff from '@material-ui/icons/VideocamOff';
 import { useBroadcastContext } from '~/reducer/Broadcast';
 import { useLocalStorage } from '~/reducer/localStorage';
 import { ResolutionOptions } from '~/consts';
@@ -18,20 +20,29 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
+enum DisplayMediaType {
+  None,
+  Display,
+  Videocam,
+}
+
 const ToolBar = () => {
   const [{ displayStream, userStream }, dispatch] = useBroadcastContext();
   const [{ frameRate, resolution }] = useLocalStorage();
+  const [displayMediaType, setDisplayMediaType] = useState(DisplayMediaType.None);
   const [disabledDisplayMedia, setDisabledDisplayMedia] = useState(false);
   const [loadingDisplayMedia, setLoadingDisplayMedia] = useState(false);
-  const [disabledUserMedia, setDisableUserMedia] = useState(false);
+  const [disabledUserMedia, setDisabledUserMedia] = useState(false);
   const [loadingUserMedia, setLoadingUserMedia] = useState(false);
+  const [disabledVideoMedia, setDisabledVideoMedia] = useState(false);
+  const [loadingVideoMedia, setLoadingVideoMedia] = useState(false);
 
   const isOpenSettings = useCallback(() => dispatch({ type: 'openSettings' }), []);
 
   const toggleDisplayMedia = useCallback(async () => {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) return;
 
-    if (!displayStream) {
+    if (displayMediaType !== DisplayMediaType.Display) {
       setLoadingDisplayMedia(true);
       try {
         const resolutionInfo = ResolutionOptions[resolution];
@@ -46,7 +57,10 @@ const ToolBar = () => {
           video: videoConstraint,
           audio: true,
         });
-        console.log(stream.getTracks());
+
+        setDisplayMediaType(DisplayMediaType.Display);
+
+        displayStream && displayStream.getTracks().forEach(track => track.stop());
         dispatch({ type: 'updateDisplayStream', payload: stream });
       } catch (e) {
         console.error(e);
@@ -54,10 +68,10 @@ const ToolBar = () => {
         setLoadingDisplayMedia(false);
       }
     } else {
-      displayStream.getTracks().forEach(track => track.stop());
+      displayStream && displayStream.getTracks().forEach(track => track.stop());
       dispatch({ type: 'updateDisplayStream', payload: null });
     }
-  }, [displayStream]);
+  }, [displayStream, displayMediaType]);
 
   const toggleUserMedia = useCallback(async () => {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
@@ -70,7 +84,6 @@ const ToolBar = () => {
             channelCount: 1,
           },
         });
-        console.log(stream);
         dispatch({ type: 'updateUserStream', payload: stream });
       } catch (e) {
         console.error(e);
@@ -83,12 +96,47 @@ const ToolBar = () => {
     }
   }, [userStream]);
 
+  const toggleVideoMedia = useCallback(async () => {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+
+    if (displayMediaType !== DisplayMediaType.Videocam) {
+      setLoadingVideoMedia(true);
+      try {
+        const resolutionInfo = ResolutionOptions[resolution];
+        const videoConstraint: MediaTrackConstraints = {
+          frameRate,
+        };
+        if (resolutionInfo) {
+          videoConstraint.width = resolutionInfo.width;
+          videoConstraint.height = resolutionInfo.height;
+        }
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: videoConstraint,
+          audio: false,
+        });
+
+        setDisplayMediaType(DisplayMediaType.Videocam);
+
+        displayStream && displayStream.getTracks().forEach(track => track.stop());
+        dispatch({ type: 'updateDisplayStream', payload: stream });
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoadingVideoMedia(false);
+      }
+    } else {
+      displayStream && displayStream.getTracks().forEach(track => track.stop());
+      dispatch({ type: 'updateDisplayStream', payload: null });
+    }
+  }, [displayStream, displayMediaType]);
+
   useEffect(() => {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
       setDisabledDisplayMedia(true);
     }
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      setDisableUserMedia(true);
+      setDisabledUserMedia(true);
+      setDisabledVideoMedia(true);
     }
   }, []);
 
@@ -98,7 +146,7 @@ const ToolBar = () => {
       <Box display="flex" justifyContent="center" width="100%">
         <Button
           className={classes.button}
-          variant={displayStream ? 'contained' : 'outlined'}
+          variant={displayMediaType === DisplayMediaType.Display ? 'contained' : 'outlined'}
           color="primary"
           disabled={disabledDisplayMedia || loadingDisplayMedia}
           onClick={toggleDisplayMedia}
@@ -113,6 +161,15 @@ const ToolBar = () => {
           onClick={toggleUserMedia}
         >
           {userStream ? <Mic /> : <MicOff />}
+        </Button>
+        <Button
+          className={classes.button}
+          variant={displayMediaType === DisplayMediaType.Videocam ? 'contained' : 'outlined'}
+          color="primary"
+          disabled={disabledVideoMedia || loadingVideoMedia}
+          onClick={toggleVideoMedia}
+        >
+          {userStream ? <Videocam /> : <VideocamOff />}
         </Button>
         <Button variant="contained" color="default" onClick={isOpenSettings} className={classes.button}>
           <Settings />
