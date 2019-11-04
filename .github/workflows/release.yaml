@@ -9,12 +9,8 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    if: github.event.ref_type != 'tag'
     steps:
-      - name: Check event ref type
-        run: |
-          export CREATE_EVENT_REF_TYPE=$(jq --raw-output .ref_type "$GITHUB_EVENT_PATH")
-          if [ "$CREATE_EVENT_REF_TYPE" != "tag" ]; then echo "ref_type is not a tag: ${CREATE_EVENT_REF_TYPE}" && exit 78; fi
-
       - uses: actions/checkout@master
 
       - name: Set up Go 1.13
@@ -43,8 +39,8 @@ jobs:
       - name: Publish release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAGNAME: ${{ github.event.ref }}
         run: |
           export PATH=$PATH:$(go env GOPATH)/bin
-          export TAGNAME=$(jq --raw-output .ref "$GITHUB_EVENT_PATH")
           GO111MODULE=off go get github.com/tcnksm/ghr
           ghr -n ${TAGNAME} -b "Release ${TAGNAME}" -draft ${TAGNAME} pkg/
