@@ -11,7 +11,7 @@ dev:
 	fresh
 
 build:
-	GOOS=linux   GOARCH=amd64  go build -o ../pkg/sagyoip-linux-amd64 .
-	GOOS=linux   GOARCH=arm    go build -o ../pkg/sagyoip-linux-arm .
-	GOOS=windows GOARCH=amd64  go build -o ../pkg/sagyoip-win-amd64 .
-	GOOS=darwin   GOARCH=amd64 go build -o ../pkg/sagyoip-mac-amd64 .
+	GOOS=linux   GOARCH=amd64  go build -o ../pkg/sagyoipe-linux-amd64 .
+	GOOS=linux   GOARCH=arm    go build -o ../pkg/sagyoipe-linux-arm .
+	GOOS=windows GOARCH=amd64  go build -o ../pkg/sagyoipe-win-amd64 .
+	GOOS=darwin   GOARCH=amd64 go build -o ../pkg/sagyoipe-mac-amd64 .

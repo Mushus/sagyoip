@@ -1,4 +1,4 @@
-module github.com/Mushus/sagyoip/backend
+module github.com/Mushus/sagyoipe/backend
 
 go 1.13
 

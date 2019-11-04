@@ -11,3 +11,7 @@ interface MediaDevices {
 declare module 'random-id' {
   export default function(len?: number, pattern?: string): string;
 }
+
+interface Navigator {
+  share?: (props: { title?: string, text?: string, url?: string }) => Promise<any>
+}

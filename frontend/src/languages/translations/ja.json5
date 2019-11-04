@@ -1,0 +1,10 @@
+{
+    'app.title': 'Sagyoipe',
+    'app.description': 'ミニマルな画面配信Webサービス',
+    'app.your_name_is': '名前: {name}',
+    'app.broadcast.share_button': '共有',
+    'app.broadcast.copy_to_share_button': "コピーして共有",
+    'app.make_room.title': '部屋を建てる',
+    'app.make_room.join_button': '入室',
+}
+
