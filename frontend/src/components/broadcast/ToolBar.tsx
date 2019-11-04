@@ -68,6 +68,7 @@ const ToolBar = () => {
         setLoadingDisplayMedia(false);
       }
     } else {
+      setDisplayMediaType(DisplayMediaType.None);
       displayStream && displayStream.getTracks().forEach(track => track.stop());
       dispatch({ type: 'updateDisplayStream', payload: null });
     }
@@ -125,6 +126,7 @@ const ToolBar = () => {
         setLoadingVideoMedia(false);
       }
     } else {
+      setDisplayMediaType(DisplayMediaType.None);
       displayStream && displayStream.getTracks().forEach(track => track.stop());
       dispatch({ type: 'updateDisplayStream', payload: null });
     }
