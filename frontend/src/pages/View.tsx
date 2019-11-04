@@ -15,6 +15,7 @@ import { useBroadcastContext, BroadcastProvider } from '~/reducer/Broadcast';
 import CustomDrawer from '~/components/broadcast/Drawer';
 import { UserData } from '~/interfaces';
 import Main from '~/components/broadcast/Main';
+import EmptyState from '~/components/broadcast/EmptyState';
 
 interface Props {
   match: match<{ id: string }>;
@@ -60,21 +61,27 @@ const ConnectView = (props: { roomId: string; userName: string }) => {
   const [{ displayStream }] = useBroadcastContext();
   const streamingUser = users.filter(({ remoteDisplayStream, isMe }) => (isMe ? displayStream : remoteDisplayStream));
 
+  const noOneStartBroadCasting = streamingUser.length === 0;
+
   const classes = useStyles();
   return (
     <Box bgcolor="#000" width="100%" height="100%">
       <CustomDrawer users={users} />
       <Main>
-        <AutoSpliter splitNum={streamingUser.length}>
-          {streamingUser.map(({ id, name, isMe, remoteDisplayStream }) => (
-            <UserVideoField key={id}>
-              <VideoUserName>
-                {name} {isMe && '*'}
-              </VideoUserName>
-              <Preview src={isMe ? displayStream : remoteDisplayStream} isLocal={isMe} />
-            </UserVideoField>
-          ))}
-        </AutoSpliter>
+        {noOneStartBroadCasting ? (
+          <EmptyState />
+        ) : (
+          <AutoSpliter splitNum={streamingUser.length}>
+            {streamingUser.map(({ id, name, isMe, remoteDisplayStream }) => (
+              <UserVideoField key={id}>
+                <VideoUserName>
+                  {name} {isMe && '*'}
+                </VideoUserName>
+                <Preview src={isMe ? displayStream : remoteDisplayStream} isLocal={isMe} />
+              </UserVideoField>
+            ))}
+          </AutoSpliter>
+        )}
         <AppBar position="fixed" className={classes.controller}>
           <ToolBar />
         </AppBar>

@@ -4,6 +4,10 @@
     'app.your_name_is': 'Your name: {name}',
     'app.broadcast.share_button': 'Share',
     'app.broadcast.copy_to_share_button': "Copy to share",
+    'app.broadcast.empty_state.title': 'Welcome!',
+    'app.broadcast.empty_state.description': 'Oh! No one has started broadcasting yet. Take the next step and let everyone Sagyoipe!',
+    'app.broadcast.empty_state.step_1': 'Share this URL on SNS, email, chat service, etc. and collect everyone here.',
+    'app.broadcast.empty_state.step_2': 'Press the button at the bottom of the screen to broadcast the screen or camera.',
     'app.make_room.title': 'Make a room',
     'app.make_room.join_button': 'Join',
 }
