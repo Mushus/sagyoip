@@ -134,7 +134,7 @@ const Preview = ({ src, isLocal }: { src: MediaStream | null; isLocal: boolean }
     videoRef.current && (videoRef.current.srcObject = src);
   }, [src, videoRef.current]);
 
-  return <VideoPreview playsInline autoPlay ref={videoRef} muted={isLocal} />;
+  return <VideoPreview playsInline autoPlay ref={videoRef} muted controls={!isLocal} />;
 };
 
 const color = {
@@ -156,8 +156,6 @@ const UserVideoField = styled.div`
 const VideoUserName = styled.div`
   position: absolute;
   z-index: 1;
-  width: 100%;
-  height: 100%;
   color: ${color.bodyText};
   opacity: 0;
   &:hover {
